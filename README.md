@@ -63,4 +63,4 @@ To analyze a different dataset, modify the `id` variable in `sample_code.py` to 
 
 ## Release
 
-Complete dataset will be released upon paper acceptance.
+Data requesters will be required to submit an abstract outlining their research purpose and evidence of their own institutional IRB approval or ethics committee review. A formal data use agreement will also be required, and the detailed guidelines for dataset requests will be released following the paper's publication. Due to IRB restrictions and privacy protections, complete dataset will be released upon paper publication.
