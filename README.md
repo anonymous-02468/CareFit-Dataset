@@ -1,66 +1,109 @@
-# Sample Dataset Analysis
+# CareFit Dataset
 
-This repository contains a sample dataset and a Python script to analyze the data. The dataset includes physiological data such as ECG raw signals and SmO2 levels, along with ground truth values for VO2 Max and VO2 AT, and other personal information.
+This repository contains sample code for loading multimodal physiological data and running VO2 Max / VO2 AT inference. The data includes ECG signals, SmO2 signals, personal information, and ground-truth exercise test labels.
 
-## Files
+## Repository Structure
 
-- `ground_truth.csv`: Contains ground truth data with columns:
-  - `id`: Identifier for the dataset.
-  - `vo2max`: Maximum oxygen consumption.
-  - `vo2at`: Oxygen consumption at anaerobic threshold.
-  - `age`: Age of the subject.
-  - `height`: Height of the subject.
-  - `weight`: Weight of the subject.
-  - `bmi`: Body mass index of the subject.
-  - `fvc0`: Recommendation Value of Forced vital capacity.
-  - `fev10`: Recommendation Value of Forced expired volume in one second.
-  - `ratio0`: Recommendation Value of Ratio of FEV1 to FVC.
-  - `pef0`: Recommendation Value of Peak expiratory flow rate.
-  - `fvc`: Forced vital capacity.
-  - `fev1`: Forced expired volume in one second.
-  - `ratio`: Ratio of FEV1 to FVC.
-  - `pef`: Peak expiratory flow rate.
-  - `time`: Time duration of the exercise session in seconds.
+- `inference.py`: Inference entry point for VO2 Max and VO2 AT prediction.
+- `model.py`: PyTorch model definitions, including ECG encoder, SmO2 encoder, and multimodal fusion block.
+- `visualization.py`: Simple visualization example for ECG and SmO2 signals.
+- `requirements.txt`: Python package dependencies.
+- `dataset/ground_truth.csv`: Ground-truth labels and personal information.
+- `dataset/*.py`: PyTorch dataset loaders and multimodal collate function.
+- `data/s1/`, `data/s2/`, ...: Expected subject data folders. Each folder should contain ECG and SmO2 `.npz` files.
+- `ckpts/`: Expected checkpoint folder for pretrained model weights.
 
-- `sample_code.py`: Python script to load, process, and visualize the data.
-- `0001/`, `0002/`, ...: The id of patients. Directories containing `.npz` files for ECG raw data and SmO2 data.
+## Data Format
 
-## Usage
+`dataset/ground_truth.csv` contains the following columns:
 
-1. Ensure you have Python installed along with the required libraries:
-   - `numpy`
-   - `pandas`
-   - `matplotlib`
+- `id`: Subject identifier.
+- `vo2max`: Maximum oxygen consumption.
+- `vo2at`: Oxygen consumption at anaerobic threshold.
+- `age`: Age of the subject.
+- `height`: Height of the subject.
+- `weight`: Weight of the subject.
+- `bmi`: Body mass index of the subject.
+- `fvc0`: Recommended forced vital capacity.
+- `fev10`: Recommended forced expired volume in one second.
+- `ratio0`: Recommended ratio of FEV1 to FVC.
+- `pef0`: Recommended peak expiratory flow rate.
+- `fvc`: Forced vital capacity.
+- `fev1`: Forced expired volume in one second.
+- `ratio`: Ratio of FEV1 to FVC.
+- `pef`: Peak expiratory flow rate.
+- `time`: Exercise duration in seconds.
 
-2. Run the script `sample_code.py` to load and visualize the data for a specific dataset ID. By default, the script uses the dataset with ID `0001`.
+The inference code expects each subject folder under `data/` to contain:
 
-3. The script performs the following steps:
-   - Loads the ground truth data from `ground_truth.csv`.
-   - Loads the ECG raw data and SmO2 data from the `.npz` files.
-   - Extracts VO2 Max and VO2 AT values for the specified dataset ID.
-   - Visualizes the ECG raw data and SmO2 data using matplotlib.
+- `ecg_clean.npz`: ECG signal data. The loader reads the `data` array from this file.
+- `smo2_smooth.npz`: SmO2 signal data. The loader reads the `data` array from this file.
 
-## Example Output
+The default inference subject list is `s1` to `s5`, configured in `inference.py`.
 
+## Environment Setup
+
+Create and activate a Python environment.
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+If you need a specific CUDA-enabled PyTorch build, install PyTorch by following the command generated on the official PyTorch website, then install the remaining packages from `requirements.txt`.
+
+## Prepare Data and Checkpoints
+
+Before running inference, place the dataset and checkpoint files in the expected locations:
+
+```text
+CareFit-Dataset/
+|-- ckpts/
+|   |-- model_vo2max.pth
+|   `-- model_vo2at.pth
+|-- data/
+|   |-- s1/
+|   |   |-- ecg_clean.npz
+|   |   `-- smo2_smooth.npz
+|   |-- s2/
+|   |   |-- ecg_clean.npz
+|   |   `-- smo2_smooth.npz
+|   `-- ...
+`-- dataset/
+    `-- ground_truth.csv
+```
+
+Due to IRB restrictions and privacy protections, the complete dataset will be released upon paper publication.
+
+## Run Inference
+
+Run VO2 Max inference:
+
+```bash
+python inference.py --flag vo2max
+```
+
+Run VO2 AT inference:
+
+```bash
+python inference.py --flag vo2at
+```
+
+The script loads `ckpts/model_<flag>.pth`, runs inference on the configured subject list, denormalizes predictions and labels, and prints MAE and MAPE:
+
+```text
+MAE: <value>, MAPE: <value>
+```
+
+## Visualization Example
+
+`visualization.py` provides a simple ECG and SmO2 visualization example. If you use the current `data/` and `dataset/` layout, make sure the paths in `visualization.py` match your local data location before running it:
+
+```bash
+python visualization.py
+```
 When you run the script, you will see the following outputs:
-
 - The shape of the ECG raw data and SmO2 data.
 - The VO2 Max and VO2 AT values for the specified dataset ID.
 - Plots of the ECG raw data and SmO2 data.
-
-## Visualization
-
-The script generates two plots:
-
-1. **ECG Raw Data**: A time-series plot showing the amplitude of the ECG signal over time.
-2. **SmO2 Data**: A time-series plot showing the SmO2 levels over time.
-
-Both plots are displayed in a single figure with subplots for easy comparison.
-
-## Customization
-
-To analyze a different dataset, modify the `id` variable in `sample_code.py` to the desired dataset ID (e.g., `0002`, `0003`, etc.).
-
-## Release
-
-Data requesters will be required to submit an abstract outlining their research purpose and evidence of their own institutional IRB approval or ethics committee review. A formal data use agreement will also be required, and the detailed guidelines for dataset requests will be released following the paper's publication. Due to IRB restrictions and privacy protections, complete dataset will be released upon paper publication.
